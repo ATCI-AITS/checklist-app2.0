@@ -1,7 +1,7 @@
 {
   "name": "checklist-app",
   "version": "0.1.0",
-  "homepage": "https://Jack42824.github.io/checklist-app2.0",
+  "homepage": "https://ATCI-AITS.github.io/checklist-app2.0",
   "private": true,
   "dependencies": {
     "@react-pdf/renderer": "^4.0.0",
