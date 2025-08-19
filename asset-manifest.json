@@ -1,19 +1,19 @@
 {
   "files": {
     "main.css": "/checklist-app2.0/static/css/main.e203dd7f.css",
-    "main.js": "/checklist-app2.0/static/js/main.a19dc067.js",
+    "main.js": "/checklist-app2.0/static/js/main.c0b23557.js",
     "static/js/213.06d2f6c6.chunk.js": "/checklist-app2.0/static/js/213.06d2f6c6.chunk.js",
     "static/js/732.58fd25de.chunk.js": "/checklist-app2.0/static/js/732.58fd25de.chunk.js",
     "static/js/453.7f8dfdff.chunk.js": "/checklist-app2.0/static/js/453.7f8dfdff.chunk.js",
     "index.html": "/checklist-app2.0/index.html",
     "main.e203dd7f.css.map": "/checklist-app2.0/static/css/main.e203dd7f.css.map",
-    "main.a19dc067.js.map": "/checklist-app2.0/static/js/main.a19dc067.js.map",
+    "main.c0b23557.js.map": "/checklist-app2.0/static/js/main.c0b23557.js.map",
     "213.06d2f6c6.chunk.js.map": "/checklist-app2.0/static/js/213.06d2f6c6.chunk.js.map",
     "732.58fd25de.chunk.js.map": "/checklist-app2.0/static/js/732.58fd25de.chunk.js.map",
     "453.7f8dfdff.chunk.js.map": "/checklist-app2.0/static/js/453.7f8dfdff.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e203dd7f.css",
-    "static/js/main.a19dc067.js"
+    "static/js/main.c0b23557.js"
   ]
 }
