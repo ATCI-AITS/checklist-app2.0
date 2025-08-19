@@ -82,12 +82,17 @@ const CheckItems = {
       description: "路段最高速限標誌（限5）是否設置？",
       asterisk: "no",
     },
-    { id: "OA-C04", description: "路段車輛行駛速度是否恰當？", asterisk: "no" },
-    { id: "OA-D01", description: "路段交通流量是否龐大？", asterisk: "yes" },
+    { id: "OA-C04", 
+      description: "路段車輛行駛速度是否恰當？", 
+      asterisk: "no" 
+    },
+    { id: "OA-D01", 
+      description: "路段交通流量是否龐大？", asterisk: "yes" 
+    },
     {
       id: "OA-D02",
       description:
-        "路段車流交織情形（包含大型車、小型車、機車等相互交織情形）是否嚴重？",
+        "路段車流交織情形（包含大型車、小型車、機慢車等相互交織情形）是否嚴重？",
       asterisk: "yes",
     },
     {
@@ -95,36 +100,42 @@ const CheckItems = {
       description: "路段沿街行人流量是否過大？",
       asterisk: "yes",
     },
-    { id: "OA-D06", description: "路段大型車交通量過大", asterisk: "yes" },
-    { id: "OA-D07", description: "路段機車交通量過大", asterisk: "yes" },
+    { id: "OA-D06",
+      description: "路段大型車交通量過大？",
+      asterisk: "yes" 
+    },
+    { id: "OA-D07", 
+      description: "路段機慢車交通量過大？", 
+      asterisk: "yes" 
+    },
     {
-      id: "OA-E06",
+      id: "OA-E08",
       description: "路段機動車輛是否可見沿路行進的自行車或行人？",
       asterisk: "no",
     },
     {
-      id: "OA-E07",
+      id: "OA-E09",
       description: "路段路邊停車是否影響視距？",
       asterisk: "yes",
     },
     {
-      id: "OA-E08",
+      id: "OA-E10",
       description: "路段汽機車停車位之位置不安全，缺乏視距",
       asterisk: "yes",
     },
     {
-      id: "OA-E09",
+      id: "OA-E11",
       description: "路段在行人、直行車與機動車輛之間是否確保彼此互視？",
       asterisk: "no",
     },
     {
-      id: "OA-E10",
+      id: "OA-E12",
       description:
         "路段路側障礙物（行道樹、設施桿件、路燈及路霸等）或建物是否影響視線？",
       asterisk: "yes",
     },
     {
-      id: "OA-E11",
+      id: "OA-E13",
       description:
         "路段對於障礙物（行道樹、設施桿件、槽化島、停止之車輛、陸橋橋墩等）之視線是否足夠及清楚？",
       asterisk: "no",
@@ -144,7 +155,10 @@ const CheckItems = {
       description: "路段彎道平曲線長度是否適當？",
       asterisk: "no",
     },
-    { id: "OA-F04", description: "路段彎道超高是否適當？", asterisk: "no" },
+    { id: "OA-F04", 
+      description: "路段彎道超高是否適當？", 
+      asterisk: "no" 
+    },
     {
       id: "OA-F05",
       description:
@@ -284,50 +298,56 @@ const CheckItems = {
     {
       id: "OA-I01",
       description:
-        "路段標誌設置是否無欠缺？路段標誌標示內容是否適當？路段標誌和標線是否沒有任何的矛盾？",
+        "路段標誌設置是否無欠缺？路段標誌標示內容是否適當？",
       asterisk: "no",
     },
     {
       id: "OA-I02",
       description:
-        "路段標誌佈設位置是否適當，使駕駛者有足夠時間採取適當及安全的反應動作？",
+        "路段標誌和標線是否沒有任何的矛盾？",
       asterisk: "no",
     },
     {
       id: "OA-I03",
       description:
+        "路段標誌佈設位置是否適當，使駕駛者有足夠時間採取適當及安全的反應動作？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-I04",
+      description:
         "路段標誌是否有反光或夜間照明？白天或黑夜，標誌的能見度是否足夠？",
       asterisk: "no",
     },
     {
-      id: "OA-I08",
+      id: "OA-I09",
       description: "路段彎道是否設置警告標誌？（包含彎路標誌或連續彎路標誌）",
       asterisk: "no",
     },
     {
-      id: "OA-I09",
+      id: "OA-I10",
       description:
         "路段彎道之警告標誌位置是否適當？（考量設計速率與平曲線半徑所配合之安全停車視距之前）",
       asterisk: "no",
     },
     {
-      id: "OA-I10",
+      id: "OA-I11",
       description: "路段彎道是否設置安全方向導引標誌（輔2）？",
       asterisk: "no",
     },
     {
-      id: "OA-I11",
+      id: "OA-I12",
       description: "路段標誌是否未視情況設置於車行方向兩側？",
       asterisk: "yes",
     },
     {
-      id: "OA-I15",
+      id: "OA-I16",
       description:
         "路段行人及自行車專用標誌是否未依照實際人行道及自行車專用道之空間分布情形設置？",
       asterisk: "yes",
     },
     {
-      id: "OA-I16",
+      id: "OA-I17",
       description: "路段舊的標誌是否有清除乾淨？",
       asterisk: "no",
     },
@@ -335,42 +355,52 @@ const CheckItems = {
     {
       id: "OA-J01",
       description:
-        "路段標線是否清晰且正確？\n路段標線劃設是否適當且連續？（包含路面邊線、車道線、分向限制線、禁止超車線、禁止變換車道線、禁止停車線及禁止臨時停車線）\n路段相關標線劃設之組合配置是否適當？（如配合路口路型之槽化線、車道線等相關標線之組合是否考量行車軌跡）\n路段標誌和標線是否沒有任何的矛盾？",
+        "路段標線是否清晰且正確？",
       asterisk: "no",
     },
     {
       id: "OA-J02",
-      description: "路段禁止變換車道線是否劃設適當且長度是否足夠？",
+      description: "路段標線劃設是否適當且連續？（包含路面邊線、車道線、分向限制線、禁止超車線、禁止變換車道線、禁止停車線及禁止臨時停車線）\n路段相關標線劃設之組合配置是否適當？（如配合路口路型之槽化線、車道線等相關標線之組合是否考量行車軌跡）",
       asterisk: "no",
     },
     {
       id: "OA-J03",
-      description: "路段禁止超車線是否劃設適當且長度是否足夠？",
+      description: "路段標誌和標線是否沒有任何的矛盾？",
       asterisk: "no",
     },
     {
       id: "OA-J04",
+      description: "路段禁止變換車道線是否劃設適當且長度是否足夠？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-J05",
+      description: "路段禁止超車線是否劃設適當且長度是否足夠？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-J06",
       description: "路段彎道是否劃設禁止超車線及禁止變換車道線？",
       asterisk: "no",
     },
-    { id: "OA-J28", description: "路段路面標記是否明顯可辨？", asterisk: "no" },
+    { id: "OA-J30", description: "路段路面標記是否明顯可辨？", asterisk: "no" },
     {
-      id: "OA-J29",
+      id: "OA-J31",
       description: "路段路寬變化大是否設置反光導標或危險標記？",
       asterisk: "no",
     },
     {
-      id: "OA-J30",
+      id: "OA-J32",
       description: "路段彎道是否設置反光導標或危險標記？",
       asterisk: "no",
     },
     {
-      id: "OA-J32",
+      id: "OA-J34",
       description: "路段槽化島、護欄或障礙物體等結構物之反光或辨識是否良好？",
       asterisk: "no",
     },
     {
-      id: "OA-J33",
+      id: "OA-J35",
       description: "路段舊的標線是否有清除乾淨（舊標線殘留）？",
       asterisk: "no",
     },
@@ -383,79 +413,91 @@ const CheckItems = {
     {
       id: "OA-L02",
       description:
-        "路段停車格位或允許停車路段的設置是否適當？（若允許停車時，其距離應避免與路口過近）\n路段對於車輛之停車（包括機車、公車）是否提供適當地點，以避免對其他道路使用人造成危險？\n路段進出停車位之車輛與車道車流之衝突是否影響甚微？\n路段路邊停車的安排是否安全？（平行、對角或垂直）",
+        "路段停車格位或允許停車路段的設置是否適當？（若允許停車時，其距離應避免與路口過近）\n路段對於車輛之停車（包括機車、公車）是否提供適當地點，以避免對其他道路使用人造成危險？",
       asterisk: "no",
     },
     {
       id: "OA-L03",
       description:
-        "路段若機車停車位須由人行道進出，剩餘人行寬度是否足夠？停放之機車是否不影響行人通行？停車空間是否可與其他空間（例如人行道或自行車道）區別？",
+        "路段進出停車位之車輛與車道車流之衝突是否影響甚微？\n路段路邊停車的安排是否安全？（平行、對角或垂直）",
       asterisk: "no",
     },
     {
       id: "OA-L04",
       description:
-        "路段若騎樓開放機車停車，剩餘人行寬度是否足夠？停放之機車是否不影響行人通行？",
+        "路段若機車停車位須由人行道進出，剩餘人行寬度是否足夠？停放之機車是否不影響行人通行？",
       asterisk: "no",
     },
     {
       id: "OA-L05",
-      description: "路段禁止停車或禁止臨時停車的標線畫設是否適當？",
+      description:
+        "停車空間是否可與其他空間（例如人行道或自行車道）區別？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-L06",
+      description:
+        "路段若騎樓開放機車停車，剩餘人行寬度是否足夠？停放之機車是否不影響行人通行？",
       asterisk: "no",
     },
     {
       id: "OA-L07",
-      description: "路段違規停車情形是否嚴重？",
-      asterisk: "yes",
-    },
-    {
-      id: "OA-L08",
-      description: "路段停車位與車道之橫向淨距是否足夠？",
+      description: "路段禁止停車或禁止臨時停車的標線畫設是否適當？",
       asterisk: "no",
     },
     {
       id: "OA-L09",
-      description: "路段行駛機車與路邊停放車輛之側向淨間距未能確保",
+      description: "路段違規停車情形是否嚴重？",
       asterisk: "yes",
     },
     {
       id: "OA-L10",
+      description: "路段停車位與車道之橫向淨距是否足夠？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-L11",
+      description: "路段行駛機車與路邊停放車輛之側向淨間距未能確保",
+      asterisk: "yes",
+    },
+    {
+      id: "OA-L12",
       description: "路段存在機車與臨停或裝卸車輛發生碰撞之可能性",
       asterisk: "yes",
     },
     {
-      id: "OA-L11",
+      id: "OA-L13",
       description:
         "路段機車停車格與車行道間是否保留緩衝空間？尤其是機車車頭朝外停放時。",
       asterisk: "no",
     },
     {
-      id: "OA-L12",
+      id: "OA-L14",
       description: "路段機車停車格是否規範車頭或車尾朝外？",
       asterisk: "no",
     },
     {
-      id: "OA-L13",
+      id: "OA-L15",
       description: "路段機車停車格規範車頭或車尾朝外時，是否有標示？",
       asterisk: "no",
     },
     {
-      id: "OA-L14",
+      id: "OA-L16",
       description: "路段機車停車格緊鄰輕軌列車行駛空間。",
       asterisk: "yes",
     },
     {
-      id: "OA-L15",
-      description: "路段機車停車格存在違規使用情形（被其他車種停放等）",
+      id: "OA-L17",
+      description: "路段機車停車格存在違規使用情形（被其他車種停放等）。",
       asterisk: "yes",
     },
     {
-      id: "OA-L16",
+      id: "OA-L18",
       description: "路段機車停車需求是否滿足？應同時考量小型車停車需求。",
       asterisk: "no",
     },
     {
-      id: "OA-L17",
+      id: "OA-L19",
       description: "路段沿街設置的機車停車彎連續設置，未中斷以利行人穿越。",
       asterisk: "yes",
     },
@@ -475,29 +517,41 @@ const CheckItems = {
     {
       id: "OA-N03",
       description:
-        "路段道路相關設施（包含號誌桿、標誌桿、路燈、電桿、號誌控制箱及電力箱等設施）是否有保護措施？\n道路固定物（包含分隔島鼻端、高架橋墩、行人天橋敦及固定物佇立於道路上者）是否有保護措施？",
+        "路段道路相關設施（包含號誌桿、標誌桿、路燈、電桿、號誌控制箱及電力箱等設施）是否有保護措施？",
       asterisk: "no",
     },
     {
       id: "OA-N04",
       description:
-        "路段靠右(左)行駛或分道標誌是否未位於分隔島或庇護島頭之前端？",
-      asterisk: "yes",
+        "道路固定物（包含分隔島鼻端、高架橋墩、行人天橋敦及固定物佇立於道路上者）是否有保護措施？",
+      asterisk: "no",
     },
     {
       id: "OA-N05",
       description:
-        "路段道路安全護欄是否安全的被裝設，使它們本身不為障礙物？\n護欄的長度是否足夠？護欄是否正確安裝（端部處理、固定處、柱間距、柱深、重疊）？",
-      asterisk: "no",
+        "路段靠右(左)行駛或分道標誌是否未位於分隔島或庇護島頭之前端？",
+      asterisk: "yes",
     },
     {
       id: "OA-N06",
+      description:
+        "路段道路安全護欄是否安全的被裝設，使它們本身不為障礙物？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-N07",
+      description:
+        "護欄的長度是否足夠？護欄是否正確安裝（端部處理、固定處、柱間距、柱深、重疊）？",
+      asterisk: "no",
+    },
+    {
+      id: "OA-N08",
       description:
         "路段號誌桿、標誌桿、路燈桿及電桿等相關設施是否貼反光標紙或相關反光設施？",
       asterisk: "no",
     },
     {
-      id: "OA-N07",
+      id: "OA-N09",
       description: "路段道路淨高是否不足？（一般車道最小淨高為4.6 公尺）",
       asterisk: "yes",
     },
@@ -547,12 +601,24 @@ const CheckItems = {
     {
       id: "OA-R03",
       description:
-        "路段駕駛者是否受道路環境影響其注意力？（如廣告牌、行道樹等影響）\n路段背景是否有任何問題，影響標誌的可見度？\n路段綠化和植栽是否對用路人造成困擾（例如道路線形）？\n路段路邊植栽是否會導致駕駛者持續往曲線方向行駛？",
+        "路段駕駛者是否受道路環境影響其注意力？（如廣告牌、行道樹等影響）",
       asterisk: "yes",
     },
     {
       id: "OA-R04",
-      description: "路段逆向行駛車流是否很大？（尤其是機車逆向行駛情形）",
+      description:
+        "路段背景是否有任何問題，影響標誌的可見度？",
+      asterisk: "yes",
+    },
+    {
+      id: "OA-R05",
+      description:
+        "路段綠化和植栽是否對用路人造成困擾（例如道路線形）？\n路段路邊植栽是否會導致駕駛者持續往曲線方向行駛？",
+      asterisk: "yes",
+    },
+    {
+      id: "OA-R06",
+      description: "路段逆向行駛車流是否很大？（尤其是機車逆向）",
       asterisk: "yes",
     },
   ],
