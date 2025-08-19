@@ -3,7 +3,7 @@ cd /d %~dp0
 
 echo === Git add & commit ===
 git add .
-git commit -m "update: 自動更新檢查表"
+git commit -m "update: checklist update"
 
 echo === Git pull (rebase) ===
 git pull --rebase origin master
