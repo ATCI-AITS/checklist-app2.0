@@ -857,11 +857,6 @@ const CheckItems = {
       asterisk: "no",
     },
     {
-      id: "OB-L13",
-      description: "臨近路口機車停車格標示是否明確？",
-      asterisk: "no",
-    },
-    {
       id: "OB-L16",
       description: "臨近路口機車停車格緊鄰輕軌列車行駛空間。",
       asterisk: "yes",
@@ -1264,7 +1259,7 @@ const CheckItems = {
       asterisk: "yes",
     },
     {
-      id: "OC-J16",
+      id: "OC-J18",
       description:
         "交叉口左轉彎下游路口過窄或過寬（須特別辨識駛入車道）時，是否有轉彎導引線？",
       asterisk: "no",
@@ -1559,11 +1554,6 @@ const CheckItems = {
       id: "OC-O07",
       description:
         "路口行人的等候區大小是否足夠？",
-      asterisk: "no",
-    },
-    {
-      id: "OC-O07",
-      description: "路口行人的等候區大小是否足夠？",
       asterisk: "no",
     },
     {
