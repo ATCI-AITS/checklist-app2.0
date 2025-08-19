@@ -302,4 +302,6 @@
   .delete-button:hover{
     background-color: #ca2727;
   }
-  
+  .multiline {
+    white-space: pre-line;
+  }

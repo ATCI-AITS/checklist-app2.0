@@ -392,7 +392,7 @@ function CheckList() {
                 <td>{item.id}</td>
                 <td className="description-cell">
                   <div className="description-content">
-                    {item.description}
+                    <p className="multiline">{item.description}</p>
                     {item.image && (
                       <div className="description-image">
                         <img

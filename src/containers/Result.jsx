@@ -62,30 +62,50 @@ const Result = () => {
     setChoosingResult(onlyNonCompliant ? savedHighlights : savedButtons);
   }, [selectedRoad, onlyNonCompliant, improvementField]);
 
-  // 更新 groupedByRoadName 當 choosingResult 或其他依賴變數改變時
   useEffect(() => {
     const grouped = roads.reduce((acc, road) => {
-      acc[road] = []; // 初始化每個路名的陣列
-
-      if (choosingResult[road]) {
-        Object.keys(choosingResult[road]).forEach((itemId) => {
+      acc[road] = [];
+  
+      if (savedButtons[road]) {
+        Object.keys(savedButtons[road]).forEach((itemId) => {
+          // 取出使用者作答、備註、圖片
           const option = savedButtons[road][itemId];
           const remark = savedHighlights[road]?.[itemId] || "";
           const image = savedImages[road]?.[itemId] || "";
-
-          acc[road].push({
-            id: itemId,
-            option: option,
-            remark: remark,
-            image: image,
-          });
+  
+          // 解析真正的題號（你後面渲染也有這樣做）
+          const parts = itemId.split("_");
+          const realId = parts[parts.length - 1];
+  
+          // 找到該題的定義，以取得 asterisk
+          const checkItem = Object.values(CheckItems).flat().find(c => c.id === realId);
+          if (!checkItem) return;
+  
+          // 期望作答：yes → 是；no → 否
+          const expected = checkItem.asterisk === "yes" ? "是" : "否";
+  
+          // 是否要納入清單
+          const isAnswered = option && option !== "無須檢查";
+          const matchAsterisk = isAnswered && option === expected;
+  
+          // onlyNonCompliant：只顯示「作答符合 asterisk」的項目
+          // 非 onlyNonCompliant：顯示全部
+          if (!onlyNonCompliant || matchAsterisk) {
+            acc[road].push({
+              id: realId,
+              option,
+              remark,
+              image,
+            });
+          }
         });
       }
       return acc;
     }, {});
-
-    setGroupedByRoadName(grouped); // 設置新的 groupedByRoadName
-  }, [choosingResult, roads]);
+  
+    setGroupedByRoadName(grouped);
+  }, [onlyNonCompliant, roads, savedButtons, savedHighlights, savedImages, CheckItems]);
+  
 
   // 根據檢查代碼的ID來獲取它所屬的sheet
   const getSheetById = (id) => {
@@ -479,6 +499,13 @@ const Result = () => {
             {groupedByRoadName[selectedRoad] &&
             groupedByRoadName[selectedRoad].length > 0 ? (
               <table>
+                <colgroup>
+                  <col style={{ width: "8%" }} />   {/* 檢查代碼 */}
+                  <col style={{ width: "50%" }} />   {/* 檢查細項 */}
+                  <col style={{ width: "5%" }} />   {/* 選項 */}
+                  <col style={{ width: "37%" }} />   {/* 備註 */}
+                  {/* 如果之後要恢復改善說明，這裡再補一個 <col style={{ width: "30%" }} /> */}
+                </colgroup>
                 <thead>
                   <tr>
                     <th
@@ -491,9 +518,7 @@ const Result = () => {
                         border: "1px solid #ccc", // 灰色的邊線
                       }}
                     >
-                      檢查
-                      <br />
-                      代碼
+                      檢查代碼
                     </th>
                     <th
                       style={{
@@ -523,7 +548,7 @@ const Result = () => {
                     >
                       備註
                     </th>
-                    {onlyNonCompliant && (
+                    {/* {onlyNonCompliant && (
                       <th
                         style={{
                           width: "40%",
@@ -534,7 +559,7 @@ const Result = () => {
                       >
                         改善說明
                       </th>
-                    )}
+                    )} */}
                   </tr>
                 </thead>
                 <tbody>
@@ -574,7 +599,7 @@ const Result = () => {
                         )}
                         <tr>
                           <td style={{ textAlign: "center" }}>
-                            {sheet} {realId}
+                             {realId}
                           </td>
                           <td className="description-cell">
                             {checkItem.description}
@@ -625,7 +650,7 @@ const Result = () => {
                             </div>
                           </td>
 
-                          {onlyNonCompliant && (
+                          {/* {onlyNonCompliant && (
                             <td className="rule-display">
                               <div
                                 dangerouslySetInnerHTML={{
@@ -633,7 +658,7 @@ const Result = () => {
                                 }}
                               />
                             </td>
-                          )}
+                          )} */}
                         </tr>
                       </React.Fragment>
                     );
