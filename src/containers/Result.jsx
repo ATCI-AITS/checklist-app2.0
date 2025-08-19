@@ -511,6 +511,7 @@ const Result = () => {
                     <th
                       className="category-header"
                       style={{
+                        width: "40px",
                         textAlign: "center",
                         verticalAlign: "middle",
                         backgroundColor: "#e0e0e0",
@@ -636,9 +637,6 @@ const Result = () => {
                                           marginTop: "10px",
                                           position:
                                             "relative" /* 讓圖片能相對備註欄移動 */,
-                                          left: onlyNonCompliant
-                                            ? "-30px"
-                                            : "0",
                                           zIndex: 1,
                                         }}
                                       />
