@@ -161,6 +161,22 @@ function CheckList() {
     reader.readAsDataURL(file);
   };
 
+  const handleDeleteImage = (roadName, itemId, imgIndex) => {
+    setUploadedImages((prev) => {
+      const currentRoadImages = prev[roadName] || {};
+      const currentItemImages = currentRoadImages[itemId] || [];
+  
+      const newItemImages = currentItemImages.filter((_, idx) => idx !== imgIndex);
+  
+      return {
+        ...prev,
+        [roadName]: {
+          ...currentRoadImages,
+          [itemId]: newItemImages,
+        },
+      };
+    });
+  };
   useEffect(() => {
     console.log("uploadedImages: ", uploadedImages);
   }, [uploadedImages]);
@@ -491,16 +507,35 @@ function CheckList() {
                       />
                       <div className="image-preview">
                         {Array.isArray(uploadedImages[activeRoad]?.[item.id]) &&
-                          uploadedImages[activeRoad][item.id].map(
-                            (src, idx) => (
+                          uploadedImages[activeRoad][item.id].map((src, idx) => (
+                            <div
+                              key={idx}
+                              style={{ position: "relative", display: "inline-block", margin: "5px" }}
+                            >
                               <img
-                                key={idx}
                                 src={src}
                                 alt="uploaded"
                                 className="uploaded-image"
                               />
-                            )
-                          )}
+                              <button
+                                onClick={() => handleDeleteImage(activeRoad, item.id, idx)}
+                                style={{
+                                  position: "absolute",
+                                  top: "0",
+                                  right: "0",
+                                  background: "transparent",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "50%",
+                                  width: "20px",
+                                  height: "20px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
                       </div>
                     </div>
                     <label className="upload-image-label">
