@@ -110,25 +110,55 @@ function CheckList() {
 
   // 插入图片
   const insertImage = (itemId, file) => {
+    if (!file) return;
+  
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const imageSrc = reader.result;
-      setUploadedImages((prev) => {
-        const currentRoadImages = prev[activeRoad] || {}; // 確保有一個對象
-        const currentItemImages = currentRoadImages[itemId] || []; // 確保有一個數組
-
-        return {
-          ...prev,
-          [activeRoad]: {
-            ...currentRoadImages,
-            [itemId]: [...currentItemImages, imageSrc],
-          },
-        };
-      });
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 640; // 最大邊長
+        let width = img.width;
+        let height = img.height;
+  
+        // 按比例縮小
+        if (width > height) {
+          if (width > maxSize) {
+            height *= maxSize / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width *= maxSize / height;
+            height = maxSize;
+          }
+        }
+  
+        canvas.width = width;
+        canvas.height = height;
+  
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+  
+        // 轉成壓縮後的 JPEG Base64 (品質 0.7)
+        const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
+  
+        // 存進 state
+        setUploadedImages((prev) => {
+          const currentRoadImages = prev[activeRoad] || {};
+          const currentItemImages = currentRoadImages[itemId] || [];
+          return {
+            ...prev,
+            [activeRoad]: {
+              ...currentRoadImages,
+              [itemId]: [...currentItemImages, compressedDataUrl],
+            },
+          };
+        });
+      };
+      img.src = e.target.result;
     };
-    if (file) {
-      reader.readAsDataURL(file);
-    }
+    reader.readAsDataURL(file);
   };
 
   useEffect(() => {

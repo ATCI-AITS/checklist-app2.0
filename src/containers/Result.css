@@ -411,3 +411,9 @@ table th {
   text-align: center;
   padding: 20px; /* 增加內邊距，避免文字太貼邊 */
 }
+.result-table img {
+  max-width: 150px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}

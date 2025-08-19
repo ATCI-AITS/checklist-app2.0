@@ -501,9 +501,9 @@ const Result = () => {
               <table>
                 <colgroup>
                   <col style={{ width: "8%" }} />   {/* 檢查代碼 */}
-                  <col style={{ width: "50%" }} />   {/* 檢查細項 */}
+                  <col style={{ width: "42%" }} />   {/* 檢查細項 */}
                   <col style={{ width: "5%" }} />   {/* 選項 */}
-                  <col style={{ width: "37%" }} />   {/* 備註 */}
+                  <col style={{ width: "45%" }} />   {/* 備註 */}
                   {/* 如果之後要恢復改善說明，這裡再補一個 <col style={{ width: "30%" }} /> */}
                 </colgroup>
                 <thead>
@@ -511,7 +511,6 @@ const Result = () => {
                     <th
                       className="category-header"
                       style={{
-                        width: "40px",
                         textAlign: "center",
                         verticalAlign: "middle",
                         backgroundColor: "#e0e0e0",
@@ -531,7 +530,6 @@ const Result = () => {
                     </th>
                     <th
                       style={{
-                        width: "40px",
                         verticalAlign: "middle",
                         backgroundColor: "#e0e0e0",
                         border: "1px solid #ccc", // 灰色的邊線
