@@ -46,7 +46,7 @@ const OutputList = () => {
           hiddenContainer.appendChild(tempDiv);
           // document.body.appendChild(tempDiv);
 
-          const canvas = await html2canvas(tempDiv);
+          const canvas = await html2canvas(tempDiv,{ scale: 2 });
           const image = canvas.toDataURL("image/png");
           const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 

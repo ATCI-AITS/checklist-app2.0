@@ -70,7 +70,7 @@ const Result = () => {
         Object.keys(savedButtons[road]).forEach((itemId) => {
           // 取出使用者作答、備註、圖片
           const option = savedButtons[road][itemId];
-          const remark = savedHighlights[road]?.[itemId] || "";
+          const remark = savedInput[road]?.[itemId] || "";
           const image = savedImages[road]?.[itemId] || "";
   
           // 解析真正的題號（你後面渲染也有這樣做）
