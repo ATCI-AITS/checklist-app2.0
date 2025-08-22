@@ -66,46 +66,34 @@ const Result = () => {
     const grouped = roads.reduce((acc, road) => {
       acc[road] = [];
   
-      if (savedButtons[road]) {
-        Object.keys(savedButtons[road]).forEach((itemId) => {
-          // 取出使用者作答、備註、圖片
-          const option = savedButtons[road][itemId];
-          const remark = savedInput[road]?.[itemId] || "";
-          const image = savedImages[road]?.[itemId] || "";
+      // 依照 CheckItems 的定義順序來遍歷
+      Object.values(CheckItems).flat().forEach((checkItem) => {
+        const realId = checkItem.id;
+        const option = savedButtons[road]?.[realId];
+        const remark = savedInput[road]?.[realId] || "";
+        const image = savedImages[road]?.[realId] || "";
   
-          // 解析真正的題號（你後面渲染也有這樣做）
-          const parts = itemId.split("_");
-          const realId = parts[parts.length - 1];
+        if (!option) return;
   
-          // 找到該題的定義，以取得 asterisk
-          const checkItem = Object.values(CheckItems).flat().find(c => c.id === realId);
-          if (!checkItem) return;
+        const expected = checkItem.asterisk === "yes" ? "是" : "否";
+        const isAnswered = option && option !== "無需檢查";
+        const matchAsterisk = isAnswered && option === expected;
   
-          // 期望作答：yes → 是；no → 否
-          const expected = checkItem.asterisk === "yes" ? "是" : "否";
+        if (!onlyNonCompliant || matchAsterisk) {
+          acc[road].push({
+            id: realId,
+            option,
+            remark,
+            image,
+          });
+        }
+      });
   
-          // 是否要納入清單
-          const isAnswered = option && option !== "無須檢查";
-          const matchAsterisk = isAnswered && option === expected;
-  
-          // onlyNonCompliant：只顯示「作答符合 asterisk」的項目
-          // 非 onlyNonCompliant：顯示全部
-          if (!onlyNonCompliant || matchAsterisk) {
-            acc[road].push({
-              id: realId,
-              option,
-              remark,
-              image,
-            });
-          }
-        });
-      }
       return acc;
     }, {});
   
     setGroupedByRoadName(grouped);
   }, [onlyNonCompliant, roads, savedButtons, savedHighlights, savedImages, CheckItems]);
-  
 
   // 根據檢查代碼的ID來獲取它所屬的sheet
   const getSheetById = (id) => {
@@ -262,7 +250,7 @@ const Result = () => {
         <Text style={styles.header}>道路安全檢查結果</Text>
         <Text style={styles.subheader}>路口名稱：{locationName}</Text>
         <Text style={styles.subheader}>填列人員：{inspector}</Text>
-        <Text style={styles.subheader}>填寫日期：{selectedDate}</Text>
+        <Text style={styles.subheader}>填寫日期：{selectedDate ? selectedDate.replace("T", " ") : ""}</Text>
         <Text style={styles.subheader}>天氣：{weather}</Text>
       </Page>
     </Document>

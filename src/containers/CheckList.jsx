@@ -343,48 +343,57 @@ function CheckList() {
     const savedData = localStorage.getItem("checklistData");
     if (savedData) {
       localStorage.removeItem("checklistData");
+  
+      // 同時清掉 React state
+      setActiveButtons({});
+      setUserInput({});
+      setHighlightRemarks({});
+      setUploadedImages({});
+  
       alert("已刪除保存的資料！");
     } else {
       alert("沒有保存的資料可以刪除！");
     }
   };
   const autoFill = () => {
-    const newActiveButtons = {};
-    const newUserInput = {};
-    const newHighlightRemarks = {};
-
+    // 複製舊的狀態，避免覆蓋已選的
+    const newActiveButtons = { ...activeButtons };
+    const newUserInput = { ...userInput };
+    const newHighlightRemarks = { ...highlightRemarks };
+  
     roads.forEach((road) => {
-      newActiveButtons[road] = {};
-      newUserInput[road] = {};
-      newHighlightRemarks[road] = {};
-
-      // 不要 `${road}_${item.id}`，直接用 item.id
+      if (!newActiveButtons[road]) newActiveButtons[road] = {};
+      if (!newUserInput[road]) newUserInput[road] = {};
+      if (!newHighlightRemarks[road]) newHighlightRemarks[road] = {};
+  
       choosingSheet().forEach((sheet) => {
         CheckItems[sheet].forEach((item) => {
-          const randomOption = Math.random() < 0.5 ? "是" : "否";
-          const id = item.id; // ← 只要檢查代碼本身
-
-          newActiveButtons[road][id] = randomOption;
-
-          // 備註一樣也以相同 id
-          if (
-            (randomOption === "是" && item.asterisk === "yes") ||
-            (randomOption === "否" && item.asterisk === "no")
-          ) {
-            newUserInput[road][id] = "試填";
-            newHighlightRemarks[road][id] = false;
-          } else {
-            newHighlightRemarks[road][id] = false;
+          const id = item.id;
+  
+          // ⚠️ 只處理「還沒有填」的題目
+          if (!newActiveButtons[road][id]) {
+            const randomOption = Math.random() < 0.5 ? "是" : "否";
+            newActiveButtons[road][id] = randomOption;
+  
+            if (
+              (randomOption === "是" && item.asterisk === "yes") ||
+              (randomOption === "否" && item.asterisk === "no")
+            ) {
+              newUserInput[road][id] = "試填";
+              newHighlightRemarks[road][id] = false;
+            } else {
+              newHighlightRemarks[road][id] = false;
+            }
           }
         });
       });
     });
+  
     setActiveButtons(newActiveButtons);
     setUserInput(newUserInput);
     setHighlightRemarks(newHighlightRemarks);
-
-    // 不要再呼叫 checkFormValidity()，useEffect自己會檢查
   };
+  
 
   return (
     <div className="checklist-container">

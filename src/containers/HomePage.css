@@ -164,6 +164,45 @@ body {
   }
   
   
+  .date-time-wrapper {
+    display: flex;
+    flex-direction: column; /* 改成上下排列 */
+    align-items: flex-start;
+    gap: 4px; /* 標題與輸入區間距 */
+  }
+  
+  .date-time-wrapper .input-row {
+    display: flex;
+    align-items: stretch;   /* ❗ 讓子元素都撐滿相同高度 */
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .date-time-wrapper input {
+    flex: 1;
+    margin-bottom: 0;
+    box-sizing: border-box;
+  }
+  
+  .now-button {
+    padding: 0 12px;
+    font-size: 12px;
+    border: 1px solid #007bff;
+    background-color: #ffffff;
+    color: #007bff;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    width: auto;
+    box-sizing: border-box;
+  }
+  
+  
+  .now-button:hover {
+    background-color: #007bff;
+    color: #ffffff;
+  }
   
   
   

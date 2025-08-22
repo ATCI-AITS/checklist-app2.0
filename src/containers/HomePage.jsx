@@ -90,14 +90,29 @@ function HomePage() {
           placeholder="輸入填列人員名稱"
         />
       </div>
-      <div className="question">
+      <div className="question date-time-wrapper">
         <label>填寫日期</label>
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          placeholder="選擇填寫日期"
-        />
+        <div className="input-row">
+          <input
+            type="datetime-local"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            placeholder="選擇填寫日期與時間"
+          />
+          <button
+            type="button"
+            className="now-button"
+            onClick={() => {
+              const now = new Date();
+              const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString()
+                .slice(0, 16);
+              setSelectedDate(localISOTime);
+            }}
+          >
+            現在時間
+          </button>
+        </div>
       </div>
       <div className="question">
         <label>天氣狀況</label>
