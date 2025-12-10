@@ -1,17 +1,15 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Result.css";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-import { styles } from "../fonts/styles.js";
 import { tabNames } from "../data/TabNames";
-import { Document, Page, Text, pdf } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
+import { PDFReportDocument } from "./PDFReportDocument";
 
 const Result = () => {
-  // 假設您從路由中獲取到所需的數據
   const location = useLocation();
   const navigate = useNavigate();
 
+  // 1. 解構路由傳遞過來的資料
   const {
     CheckItems,
     locationName,
@@ -21,65 +19,61 @@ const Result = () => {
     roadNames,
     directions,
     roads,
-  } = location.state; // 根據需要調整
+  } = location.state || {};
 
+  // 2. 從 LocalStorage 讀取填寫內容
   const saved = JSON.parse(localStorage.getItem("checklistData")) || {};
   const {
     activeButtons: savedButtons = {},
     userInput: savedInput = {},
-    highlightRemarks: savedHighlights = {},
     uploadedImages: savedImages = {},
   } = saved;
 
-  const [onlyNonCompliant, setOnlyNonCompliant] = useState(false);
-  const [improvementField, setImprovementField] = useState(false);
-
-  const [selectedRoad, setSelectedRoad] = useState(roads[0]);
-  const [currentPageCode, setCurrentPageCode] = useState();
-  const [currentPageName, setCurrentPageName] = useState();
-
-  const [isLoading, setIsLoading] = useState(false); // 加载状态
-
-  const pdfRef = useRef(null);
-
-  const [choosingResult, setChoosingResult] = useState(savedButtons);
+  // 3. UI 狀態管理
+  const [onlyNonCompliant, setOnlyNonCompliant] = useState(false); // 控制畫面上的篩選
+  const [selectedRoad, setSelectedRoad] = useState(roads ? roads[0] : ""); // 控制目前選取的路段分頁
+  const [currentPageName, setCurrentPageName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // 用於「畫面顯示」的資料 (會隨 onlyNonCompliant 改變)
   const [groupedByRoadName, setGroupedByRoadName] = useState({});
 
-  const MAX_PAGES_PER_BATCH = 10;
-
+  // 更新頁面標題
   useEffect(() => {
-    setCurrentPageCode(
-      `${selectedRoad}-${improvementField}-${onlyNonCompliant}`
-    );
+    const compliance = onlyNonCompliant ? "具交通安全風險之項目" : "所有檢查項目";
+    setCurrentPageName(`${selectedRoad} - ${compliance}`);
+  }, [selectedRoad, onlyNonCompliant]);
 
-    const compliance = onlyNonCompliant
-      ? "具交通安全風險之項目"
-      : "所有檢核項目";
-    const name = `${selectedRoad}-${compliance}`;
-    setCurrentPageName(name);
+  // =========================================================================
+  // 核心邏輯：資料篩選與分組函式
+  // applyFilter: boolean -> true (只顯示風險項目) / false (顯示全部)
+  // =========================================================================
+  const getPDFData = (applyFilter) => {
+    if (!roads) return {};
 
-    // 更新 choosingResult
-    setChoosingResult(onlyNonCompliant ? savedHighlights : savedButtons);
-  }, [selectedRoad, onlyNonCompliant, improvementField]);
-
-  useEffect(() => {
-    const grouped = roads.reduce((acc, road) => {
+    return roads.reduce((acc, road) => {
       acc[road] = [];
-  
-      // 依照 CheckItems 的定義順序來遍歷
+      
+      // 遍歷所有 Sheet (OA, OB, OC...) 的所有項目
       Object.values(CheckItems).flat().forEach((checkItem) => {
         const realId = checkItem.id;
         const option = savedButtons[road]?.[realId];
         const remark = savedInput[road]?.[realId] || "";
-        const image = savedImages[road]?.[realId] || "";
-  
+        const image = savedImages[road]?.[realId] || []; // 確保 image 是陣列
+
+        // 如果使用者沒填寫該題，跳過
         if (!option) return;
-  
+
+        // 判斷是否符合風險定義 (Asterisk 邏輯)
         const expected = checkItem.asterisk === "yes" ? "是" : "否";
-        const isAnswered = option && option !== "無需檢查";
+        // 排除 "無需" 的情況
+        const isAnswered = option && option !== "無需" && option !== "無需檢查"; 
         const matchAsterisk = isAnswered && option === expected;
-  
-        if (!onlyNonCompliant || matchAsterisk) {
+
+        // 判斷是否加入資料集：
+        // 1. 如果 applyFilter 為 false (全部輸出) -> 加入
+        // 2. 如果 applyFilter 為 true (僅風險) -> 只有 matchAsterisk 為真才加入
+        if (!applyFilter || matchAsterisk) {
           acc[road].push({
             id: realId,
             option,
@@ -88,344 +82,131 @@ const Result = () => {
           });
         }
       });
-  
       return acc;
     }, {});
-  
-    setGroupedByRoadName(grouped);
-  }, [onlyNonCompliant, roads, savedButtons, savedHighlights, savedImages, CheckItems]);
+  };
 
-  // 根據檢查代碼的ID來獲取它所屬的sheet
+  // =========================================================================
+  // Effect：當 UI 篩選狀態改變時，更新畫面上的表格資料
+  // =========================================================================
+  useEffect(() => {
+    // 這裡依賴 UI 的 onlyNonCompliant 狀態
+    const dataForScreen = getPDFData(onlyNonCompliant);
+    setGroupedByRoadName(dataForScreen);
+  }, [onlyNonCompliant, roads, savedButtons, savedInput, savedImages, CheckItems]);
+
+  // 輔助：取得 ID 對應的 Sheet 名稱 (用於畫面顯示)
   const getSheetById = (id) => {
     for (const sheet in CheckItems) {
       if (CheckItems[sheet].some((item) => item.id === id)) {
-        return sheet; // 返回該ID所屬的sheet，例如 "A" 或 "B"
+        return sheet;
       }
     }
-    return null; // 如果沒有找到匹配的，返回null
+    return null;
   };
 
-  const handleChange = () => {
+  const handleModify = () => {
+    // 回到檢查表頁面，帶回現有狀態
     const state = {
       ...location.state,
-      savedButtons,
-      savedHighlights,
-      savedInput,
-      savedImages,
+      // 這裡其實不需要特別帶 savedButtons 等，因為 CheckList 會自己讀 localStorage
+      // 但為了保險起見或特殊邏輯保留
+      from: "Result" 
     };
-    navigate("/checklist", { state: { ...state, from: "Result" } });
+    navigate("/checklist", { state });
   };
 
-  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  // 切換到指定的路段並等待頁面渲染完成
-  const switchToRoadAndGeneratePDF = async (pageCode, index, isOnly) => {
-    setSelectedRoad(pageCode); // 切換到該路段
-    setOnlyNonCompliant(isOnly);
-
-    const targetId = `${pageCode}-false-${isOnly}-pdf-content`;
-    console.log(`跳轉至 ${targetId}`);
-
-    // 🔁 等待元素實際出現並完成渲染
-    await waitForElement(targetId);
-    await delay(300); // ✅ 可以視需要加一點 delay 確保完全渲染
-
-    await generatePDFForRoad(pageCode, index, isOnly);
-  };
-
-  const waitForElement = (id, timeout = 5000) => {
-    return new Promise((resolve, reject) => {
-      const start = Date.now();
-
-      const check = () => {
-        const element = document.getElementById(id);
-        if (element) {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              resolve(element);
-            });
-          });
-        } else if (Date.now() - start > timeout) {
-          reject(new Error(`元素 ${id} 在 ${timeout}ms 內未出現`));
-        } else {
-          setTimeout(check, 100);
-        }
-      };
-      check();
-    });
-  };
-
-  const generatePDFForRoad = async (pageCode, index, isOnly) => {
-    // 1. 取得要截圖的元素
-    const element = document.getElementById(
-      `${pageCode}-false-${isOnly}-pdf-content`
-    );
-    if (!element) return;
-
-    // 2. 初始化 jsPDF（A4 尺寸），仅对第一条路执行一次
-    if (index === 0) {
-      pdfRef.current = new jsPDF("p", "mm", "a4");
-    }
-    const pdf = pdfRef.current;
-
-    // 3. 计算 PDF 页面和图片参数
-    const pageW = pdf.internal.pageSize.getWidth(); // 210 mm
-    const pageH = pdf.internal.pageSize.getHeight(); // 297 mm
-    const margin = 10; // 10 mm 白边
-    const usableW = pageW - margin * 2; // 可用宽度
-    const usableH = pageH - margin * 2; // 可用高度
-
-    // 4. 像素 ↔ 毫米 转换比 (假定 96 DPI)
-    const pxPerMm = 96 / 25.4;
-    // 目标画布宽度 (px)，确保画布宽度对应 PDF 中的 usableW
-    const targetCanvasWidthPx = usableW * pxPerMm;
-
-    // 5. 临时强制 element 宽度，使 html2canvas 输出固定宽度
-    const originalStyleWidth = element.style.width;
-    element.style.width = `${targetCanvasWidthPx}px`;
-
-    // 6. 用 html2canvas 渲染整张 canvas，不依赖屏幕分辨率
-    const canvas = await html2canvas(element, {
-      useCORS: true,
-      scale: 1,
-      width: element.scrollWidth,
-      height: element.scrollHeight,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight,
-    });
-
-    // 恢复原始宽度
-    element.style.width = originalStyleWidth;
-
-    // 7. 准备分页切片参数
-    const imgWidthPx = canvas.width; // 应等于 targetCanvasWidthPx
-    const imgWidthMm = usableW; // PDF 中插入图片的宽度 (mm)
-    const sliceHeightPx = usableH * pxPerMm; // 每页对应的画布高度 (px)
-
-    // 8. 按页切片并插入 PDF
-    let yPx = 0;
-    let pageIndex = 0;
-    while (yPx < canvas.height) {
-      const thisSlicePx = Math.min(sliceHeightPx, canvas.height - yPx);
-
-      // 新建临时 canvas，仅存本页图
-      const tmp = document.createElement("canvas");
-      tmp.width = imgWidthPx;
-      tmp.height = thisSlicePx;
-      tmp
-        .getContext("2d")
-        .drawImage(
-          canvas,
-          0,
-          yPx,
-          imgWidthPx,
-          thisSlicePx,
-          0,
-          0,
-          imgWidthPx,
-          thisSlicePx
-        );
-
-      // 导出本页图片数据
-      const sliceData = tmp.toDataURL("image/png");
-
-      // 计算本页高度 (mm)
-      const sliceHeightMm = thisSlicePx / pxPerMm;
-
-      // 每页前插入新页（0 号页除外）
-      if (pageIndex > 0) pdf.addPage();
-      pdf.addImage(sliceData, "PNG", margin, margin, imgWidthMm, sliceHeightMm);
-
-      yPx += thisSlicePx;
-      pageIndex++;
-    }
-
-    // 9. 如果不是最后一条路，添加一页空白分隔
-    if (index < roadNames.length - 1) pdf.addPage();
-  };
-
-  const FirstPDFDocument = () => (
-    <Document>
-      <Page style={styles.page}>
-        <Text style={styles.header}>道路安全檢查結果</Text>
-        <Text style={styles.subheader}>路口名稱：{locationName}</Text>
-        <Text style={styles.subheader}>填列人員：{inspector}</Text>
-        <Text style={styles.subheader}>填寫日期：{selectedDate ? selectedDate.replace("T", " ") : ""}</Text>
-        <Text style={styles.subheader}>天氣：{weather}</Text>
-      </Page>
-    </Document>
-  );
-
-  const generatedMultiplePDF = async (isOnly) => {
-    // pdfRef.current = new jsPDF("p", "mm", "a4");
-
-    const pdfBuffers = [];
-    let pageCounter = 0;
-    const roads = Object.keys(groupedByRoadName);
-
-    for (let i = 0; i < roads.length; i++) {
-      const road = roads[i];
-      console.log("generatedMultiplePDF: 開始處理", road);
-      if (!pdfRef.current || pageCounter >= MAX_PAGES_PER_BATCH) {
-        if (pdfRef.current) {
-          try {
-            const blob = await pdfRef.current.output("blob");
-            console.log(
-              "即將輸出 PDF，目前頁數：",
-              pdfRef.current.internal.getNumberOfPages()
-            );
-            console.log("pdfRef.current 內容：", pdfRef.current);
-
-            // ✅ 安全檢查
-            if (!blob) {
-              throw new Error("jsPDF.output('blob') 回傳為 null/undefined！");
-            }
-
-            const buffer = await blob.arrayBuffer();
-            pdfBuffers.push(buffer);
-            console.log(
-              "成功儲存一批 PDF buffer，頁數：",
-              pdfRef.current.internal.getNumberOfPages()
-            );
-          } catch (err) {
-            console.error("PDF 輸出失敗！", err);
-          }
-        }
-
-        pdfRef.current = new jsPDF("p", "mm", "a4");
-        pageCounter = 1; // ✅ 因為我們真的加了一頁內容
-      }
-
-      const beforeCount = pdfRef.current.internal.getNumberOfPages();
-      await switchToRoadAndGeneratePDF(road, i, isOnly);
-      const afterCount = pdfRef.current.internal.getNumberOfPages();
-      pageCounter += afterCount - beforeCount;
-      console.log("pageCounter: ", pageCounter);
-    }
-
-    if (pdfRef.current) {
-      const numPages = pdfRef.current.internal.getNumberOfPages?.() || 0;
-      if (numPages > 0) {
-        try {
-          const buffer = pdfRef.current.output("arraybuffer");
-          pdfBuffers.push(buffer);
-          console.log("成功輸出 buffer，頁數：", numPages);
-        } catch (err) {
-          console.error("PDF 輸出失敗（非空頁）", err);
-        }
-      } else {
-        console.warn("跳過空 PDF，不輸出！");
-      }
-    }
-
-    return pdfBuffers;
-  };
-
-  const generatedFirstPDF = async () => {
-    const coverPageBlob = await pdf(<FirstPDFDocument />).toBlob();
-    const coverPageBytes = await coverPageBlob.arrayBuffer();
-    return coverPageBytes;
-  };
-
-  const { PDFDocument } = require("pdf-lib");
-  const mergePDFs = async (coverPageBytes, pdfBuffers) => {
-    // 創建一個新的 PDF 文檔來合併
-    const finalPdf = await PDFDocument.create();
-
-    // 加載首頁 PDF
-    const coverPdfDoc = await PDFDocument.load(coverPageBytes);
-    const coverPages = await finalPdf.copyPages(
-      coverPdfDoc,
-      coverPdfDoc.getPageIndices()
-    );
-    coverPages.forEach((page) => finalPdf.addPage(page));
-
-    // 加入每一個內容 PDF
-    for (let i = 0; i < pdfBuffers.length; i++) {
-      console.log(`pdfBuffers: ${pdfBuffers.length}, now i = ${i}`);
-      const contentPdfDoc = await PDFDocument.load(pdfBuffers[i]);
-      const contentPages = await finalPdf.copyPages(
-        contentPdfDoc,
-        contentPdfDoc.getPageIndices()
-      );
-      contentPages.forEach((page) => finalPdf.addPage(page));
-    }
-    return await finalPdf.save();
-  };
-
+  // =========================================================================
+  // PDF 生成與下載流程
+  // isOnly: boolean -> 由按鈕點擊決定 (true: 風險, false: 全部)
+  // =========================================================================
   const processQueue = async (isOnly) => {
     setIsLoading(true);
-    const multiPageBuffers = await generatedMultiplePDF(isOnly); // ← 現在是一個 Array
-    const coverPageBytes = await generatedFirstPDF();
-    const mergedPdfBytes = await mergePDFs(coverPageBytes, multiPageBuffers);
+  
+    try {
+      // 1. [關鍵] 呼叫函式產生一份全新的資料，不受畫面 State 影響
+      const dataForPDF = getPDFData(isOnly);
 
-    const blob = new Blob([mergedPdfBytes], { type: "application/pdf" });
-    const blobUrl = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = `${locationName}之${
-      isOnly ? "具道路安全問題項目" : "所有檢核項目"
-    }.pdf`;
-    link.click();
-    setIsLoading(false);
+      // 2. 生成 PDF Blob
+      const blob = await pdf(
+        <PDFReportDocument 
+          groupedByRoadName={dataForPDF} // 傳入計算好的資料
+          CheckItems={CheckItems}
+          locationName={locationName}
+          // 標題依照按鈕意圖決定
+          currentPageName={`${locationName} - ${isOnly ? "風險項目" : "所有項目"}`}
+          onlyNonCompliant={isOnly}
+          // 封面所需資訊
+          inspector={inspector}
+          selectedDate={selectedDate}
+          weather={weather}
+        />
+      ).toBlob();
+  
+      // 3. 觸發瀏覽器下載
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${locationName}_${isOnly ? "風險項目" : "所有項目"}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+  
+    } catch (error) {
+      console.error("PDF 生成失敗:", error);
+      alert("PDF 生成失敗，請檢查 console 錯誤訊息 (通常是字體路徑問題)");
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (!roads) return <div>載入中或是資料遺失，請返回首頁...</div>;
 
   return (
     <div>
+      {/* 頂部導航列 */}
       <div className="top-bar">
-        <button
-          className="topbar-button topbar-button-left"
-          onClick={handleChange}
-        >
+        <button className="topbar-button topbar-button-left" onClick={handleModify}>
           <div className="arrow-container">
-            <svg
-              className="arrow-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-            >
+            <svg className="arrow-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
               <path d="M15 19l-7-7 7-7v14z" />
             </svg>
           </div>
-          修改檢核內容
+          修改檢查內容
         </button>
       </div>
+
+      {/* 讀取遮罩 */}
       {isLoading && (
         <div className="loading-overlay">
-          <div className="loading-message">輸出中...請稍候</div>
+          <div className="loading-message">正在產生 PDF 報告...</div>
         </div>
       )}
-      <div
-        className="result-container"
-        style={{
-          opacity: isLoading ? 0 : 1,
-          pointerEvents: isLoading ? "none" : "auto",
-        }}
-      >
+
+      <div className="result-container" style={{ opacity: isLoading ? 0.5 : 1, pointerEvents: isLoading ? "none" : "auto" }}>
+        
+        {/* 左側邊欄：路名與功能區 */}
         <div className="sidebar">
           <h2>路名分頁</h2>
           <ul>
-            {roadNames.map((roadName, roadNameIdx) => (
-              <li
-                key={roadNameIdx}
-                className={
-                  selectedRoad === `${roadName}-${directions[roadNameIdx]}`
-                    ? "active"
-                    : ""
-                }
-                onClick={() =>
-                  setSelectedRoad(`${roadName}-${directions[roadNameIdx]}`)
-                }
-              >
-                {`${roadName}-${directions[roadNameIdx]}`}
-              </li>
-            ))}
+            {roadNames.map((roadName, idx) => {
+              const fullRoadName = `${roadName}-${directions[idx]}`;
+              return (
+                <li
+                  key={idx}
+                  className={selectedRoad === fullRoadName ? "active" : ""}
+                  onClick={() => setSelectedRoad(fullRoadName)}
+                >
+                  {fullRoadName}
+                </li>
+              );
+            })}
           </ul>
 
-          {/* 顯示區域 */}
+          {/* 畫面篩選區 (只影響螢幕顯示) */}
           <div className="display-section">
-            <h2>篩選</h2>
+            <h2>預覽篩選</h2>
             <div className="checkbox-container">
               <label>
                 <input
@@ -433,224 +214,103 @@ const Result = () => {
                   checked={onlyNonCompliant}
                   onChange={() => setOnlyNonCompliant(!onlyNonCompliant)}
                 />
-                具交通安全風險
-                <br></br>
-                之項目
+                僅顯示風險項目
               </label>
             </div>
           </div>
+
+          {/* 輸出下載區 (影響 PDF 內容) */}
           <div className="display-section">
-            <h2>輸出</h2>
-            <button
-              className="output-button all"
-              onClick={() => processQueue(false)}
-              // onClick={processQueue}
-              disabled={isLoading}
-            >
-              <svg
-                className="download-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-              >
+            <h2>輸出報表</h2>
+            <button className="output-button all" onClick={() => processQueue(false)} disabled={isLoading}>
+              <svg className="download-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                 <path d="M12 16l4-5h-3V3h-2v8H8l4 5zm-8 2v2h16v-2H4z" />
               </svg>
-              全部檢核結果
+              下載完整檢查結果
             </button>
-            <button
-              className="output-button problem"
-              onClick={() => processQueue(true)}
-              disabled={isLoading}
-            >
-              <svg
-                className="download-icon"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-              >
+            <button className="output-button problem" onClick={() => processQueue(true)} disabled={isLoading}>
+              <svg className="download-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
                 <path d="M12 16l4-5h-3V3h-2v8H8l4 5zm-8 2v2h16v-2H4z" />
               </svg>
-              安全風險項目
+              下載安全風險項目
             </button>
           </div>
         </div>
 
+        {/* 右側：HTML 預覽表格 */}
         <div className="result-sheet-content">
-          <div id={`${currentPageCode}-pdf-content`}>
+          <div id="display-content">
             <div className="header-section">
-              <h1 className="centered-title">檢核結果</h1>
+              <h1 className="centered-title">檢查結果預覽</h1>
               <h2 className="centered-page-name">{currentPageName}</h2>
             </div>
 
-            {groupedByRoadName[selectedRoad] &&
-            groupedByRoadName[selectedRoad].length > 0 ? (
+            {groupedByRoadName[selectedRoad] && groupedByRoadName[selectedRoad].length > 0 ? (
               <table>
-                <colgroup>
-                  <col style={{ width: "8%" }} />   {/* 檢查代碼 */}
-                  <col style={{ width: "42%" }} />   {/* 檢查細項 */}
-                  <col style={{ width: "5%" }} />   {/* 選項 */}
-                  <col style={{ width: "45%" }} />   {/* 備註 */}
-                  {/* 如果之後要恢復改善說明，這裡再補一個 <col style={{ width: "30%" }} /> */}
+                 <colgroup>
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "40%" }} />
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "40%" }} />
                 </colgroup>
                 <thead>
                   <tr>
-                    <th
-                      className="category-header"
-                      style={{
-                        width: "40px",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                        backgroundColor: "#e0e0e0",
-                        border: "1px solid #ccc", // 灰色的邊線
-                      }}
-                    >
-                      檢查代碼
-                    </th>
-                    <th
-                      style={{
-                        verticalAlign: "middle",
-                        backgroundColor: "#e0e0e0",
-                        border: "1px solid #ccc", // 灰色的邊線
-                      }}
-                    >
-                      檢查細項
-                    </th>
-                    <th
-                      style={{
-                        verticalAlign: "middle",
-                        backgroundColor: "#e0e0e0",
-                        border: "1px solid #ccc", // 灰色的邊線
-                      }}
-                    >
-                      選項
-                    </th>
-                    <th
-                      style={{
-                        verticalAlign: "middle",
-                        backgroundColor: "#e0e0e0",
-                        border: "1px solid #ccc", // 灰色的邊線
-                      }}
-                    >
-                      備註
-                    </th>
-                    {/* {onlyNonCompliant && (
-                      <th
-                        style={{
-                          width: "40%",
-                          verticalAlign: "middle",
-                          backgroundColor: "#e0e0e0",
-                          border: "1px solid #ccc", // 灰色的邊線
-                        }}
-                      >
-                        改善說明
-                      </th>
-                    )} */}
+                    <th>檢查代碼</th>
+                    <th>檢查細項</th>
+                    <th>選項</th>
+                    <th>備註</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groupedByRoadName[selectedRoad].map((item, index) => {
-                    const parts = item.id.split("_");
-                    const realId = parts[parts.length - 1];
-
-                    // 根據 item 獲取對應的 CheckItems 項目
-                    const checkItem = Object.values(CheckItems)
-                      .flat()
-                      .find((check) => check.id === realId);
-                    const sheet = getSheetById(item.id);
-                    const isFirstInSheet =
-                      index === 0 ||
-                      getSheetById(
-                        groupedByRoadName[selectedRoad][index - 1].id
-                          .split("_")
-                          .pop()
-                      ) !== sheet;
-
-                    return (
+                     // 解析 ID 與 取得原始資料
+                     const parts = item.id.split("_");
+                     const realId = parts[parts.length - 1]; // 例如 "OA-A01"
+                     const checkItem = Object.values(CheckItems).flat().find((check) => check.id === realId);
+                     const sheet = getSheetById(realId);
+                     
+                     // 判斷是否需要插入 Sheet 標題列 (例如 "OA 路段...")
+                     const prevItem = groupedByRoadName[selectedRoad][index - 1];
+                     const prevRealId = prevItem ? prevItem.id.split("_").pop() : null;
+                     const isFirstInSheet = index === 0 || getSheetById(prevRealId) !== sheet;
+                     
+                     return (
                       <React.Fragment key={item.id}>
+                        {/* Sheet 分隔標題 */}
                         {isFirstInSheet && (
-                          <tr>
-                            <td
-                              colSpan={onlyNonCompliant ? 5 : 4}
-                              style={{
-                                fontWeight: "bold",
-
-                                padding: "10px",
-                                backgroundColor: "#f9f9f9", // 柔和的背景色
-                              }}
-                            >
-                              {tabNames[sheet]}
-                            </td>
-                          </tr>
+                          <tr><td colSpan={4} style={{fontWeight: "bold", padding: "10px", backgroundColor: "#f9f9f9"}}>{tabNames[sheet]}</td></tr>
                         )}
+                        
+                        {/* 資料列 */}
                         <tr>
-                          <td style={{ textAlign: "center" }}>
-                             {realId}
-                          </td>
-                          <td className="description-cell">
-                            {checkItem.description}
-                          </td>
-
-                          <td>
-                            {item.option}
-                            {item.option === "是" &&
-                              checkItem.asterisk === "yes" && (
-                                <span className="asterisk">＊</span>
-                              )}
-                            {item.option === "否" &&
-                              checkItem.asterisk === "no" && (
-                                <span className="asterisk">＊</span>
-                              )}
-                          </td>
-                          <td
-                            style={{
-                              padding: "10px",
-                              boxSizing: "border-box",
-                              position: "relative",
-                            }}
-                          >
-                            <div className="remark-display">
-                              {item.remark}
-                              {Array.isArray(item.image) &&
-                                item.image.length > 0 && (
-                                  <div className="image-gallery">
-                                    {item.image.map((imgSrc, idx) => (
-                                      <img
-                                        key={idx}
-                                        src={imgSrc}
-                                        alt={`Uploaded ${idx + 1}`}
-                                        style={{
-                                          maxWidth: "250px",
-                                          marginTop: "10px",
-                                          position:
-                                            "relative" /* 讓圖片能相對備註欄移動 */,
-                                          zIndex: 1,
-                                        }}
-                                      />
-                                    ))}
-                                  </div>
-                                )}
-                            </div>
-                          </td>
-
-                          {/* {onlyNonCompliant && (
-                            <td className="rule-display">
-                              <div
-                                dangerouslySetInnerHTML={{
-                                  __html: checkItem.rule || "無說明",
-                                }}
-                              />
-                            </td>
-                          )} */}
+                           <td style={{textAlign: 'center'}}>{realId}</td>
+                           <td className="description-cell">{checkItem?.description}</td>
+                           <td style={{textAlign: 'center'}}>
+                             {item.option}
+                             {/* 風險項目的紅色星號標記 */}
+                             {((item.option === "是" && checkItem?.asterisk === "yes") || 
+                               (item.option === "否" && checkItem?.asterisk === "no")) && 
+                               <span className="asterisk" style={{color: 'red'}}> ＊</span>}
+                           </td>
+                           <td style={{padding: "10px"}}>
+                             {item.remark}
+                             {/* 圖片預覽 */}
+                             {Array.isArray(item.image) && item.image.length > 0 && (
+                               <div style={{marginTop: '5px'}}>
+                                 {item.image.map((src, i) => (
+                                   <img key={i} src={src} alt="uploaded" style={{maxWidth: '150px', maxHeight: '150px', display: 'block', marginBottom: '5px'}} />
+                                 ))}
+                               </div>
+                             )}
+                           </td>
                         </tr>
                       </React.Fragment>
-                    );
+                     )
                   })}
                 </tbody>
               </table>
             ) : (
-              <p>無具交通安全風險之項目。</p>
+              <p style={{textAlign: 'center', marginTop: '20px'}}>無符合條件的項目。</p>
             )}
           </div>
         </div>
